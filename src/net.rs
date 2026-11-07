@@ -216,26 +216,26 @@ impl SocketHolder {
         })
     }
 
-    #[cfg(not(Py_GIL_DISABLED))]
+    #[cfg(not(granian_mt_workers))]
     #[allow(clippy::unnecessary_wraps)]
     pub fn as_tcp_listener(&self) -> Result<TcpListener> {
         let listener = unsafe { TcpListener::from_raw_fd(self.socket.as_ref().unwrap().as_raw_fd()) };
         Ok(listener)
     }
 
-    #[cfg(Py_GIL_DISABLED)]
+    #[cfg(granian_mt_workers)]
     pub fn as_tcp_listener(&self) -> Result<TcpListener> {
         Ok(self.socket.as_ref().unwrap().try_clone()?.into())
     }
 
-    #[cfg(not(Py_GIL_DISABLED))]
+    #[cfg(not(granian_mt_workers))]
     #[allow(clippy::unnecessary_wraps)]
     pub fn as_unix_listener(&self) -> Result<UnixListener> {
         let listener = unsafe { UnixListener::from_raw_fd(self.socket.as_ref().unwrap().as_raw_fd()) };
         Ok(listener)
     }
 
-    #[cfg(Py_GIL_DISABLED)]
+    #[cfg(granian_mt_workers)]
     pub fn as_unix_listener(&self) -> Result<UnixListener> {
         Ok(self.socket.as_ref().unwrap().try_clone()?.into())
     }
@@ -309,7 +309,7 @@ impl SocketHolder {
         Ok(listener)
     }
 
-    #[cfg(not(Py_GIL_DISABLED))]
+    #[cfg(not(granian_mt_workers))]
     pub fn as_unix_listener(&self) -> Result<UnixListener> {
         let socket = self.socket.as_ref().unwrap();
         socket.listen(self.backlog)?;
@@ -317,7 +317,7 @@ impl SocketHolder {
         Ok(listener)
     }
 
-    #[cfg(Py_GIL_DISABLED)]
+    #[cfg(granian_mt_workers)]
     pub fn as_unix_listener(&self) -> Result<UnixListener> {
         let socket = self.socket.as_ref().unwrap();
         socket.listen(self.backlog)?;

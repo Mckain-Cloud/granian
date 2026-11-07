@@ -85,7 +85,7 @@ pub(crate) struct WorkerConfig {
         Option<Py<crate::net::ListenerSpec>>,
         Option<Py<crate::net::SocketHolder>>,
     ),
-    #[cfg(not(Py_GIL_DISABLED))]
+    #[cfg(not(granian_mt_workers))]
     pub ipc: Option<Py<crate::ipc::IPCSenderHandle>>,
     pub threads: usize,
     pub blocking_threads: usize,
@@ -157,7 +157,7 @@ impl WorkerConfig {
         Self {
             id,
             sock,
-            #[cfg(not(Py_GIL_DISABLED))]
+            #[cfg(not(granian_mt_workers))]
             ipc,
             threads,
             blocking_threads,

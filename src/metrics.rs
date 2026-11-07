@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex, atomic};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use crate::ipc;
 use crate::runtime;
 
@@ -215,7 +215,7 @@ impl MetricsExporter {
     }
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 struct LocalMetricsCollector {
     data: Arc<WorkerMetrics>,
     birth: std::time::Instant,
@@ -223,7 +223,7 @@ struct LocalMetricsCollector {
     id: usize,
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 struct IPCMetricsCollector {
     data: Arc<WorkerMetrics>,
     birth: std::time::Instant,
@@ -249,7 +249,7 @@ fn collect_metrics(birth: &std::time::Instant, data: &Arc<WorkerMetrics>) -> Met
     ]
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 impl LocalMetricsCollector {
     fn poll(&self, aggregator: &Py<MetricsAggregator>) {
         let data = collect_metrics(&self.birth, &self.data);
@@ -257,7 +257,7 @@ impl LocalMetricsCollector {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 impl IPCMetricsCollector {
     fn poll(&self, ipc: Arc<tokio::sync::Mutex<interprocess::unnamed_pipe::tokio::Sender>>) {
         self.send(collect_metrics(&self.birth, &self.data), ipc);
@@ -273,7 +273,7 @@ impl IPCMetricsCollector {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 pub(crate) fn spawn_ipc_collector(
     runtime: runtime::RuntimeRef,
     mut sig: tokio::sync::watch::Receiver<bool>,
@@ -310,7 +310,7 @@ pub(crate) fn spawn_ipc_collector(
     });
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 pub(crate) fn spawn_local_collector(
     runtime: runtime::RuntimeRef,
     mut sig: tokio::sync::watch::Receiver<bool>,

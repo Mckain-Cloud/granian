@@ -300,7 +300,7 @@ fn blocking_worker_timeout(
     });
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 fn blocking_worker_with_metrics(queue: channel::Receiver<BlockingTask>, metrics: Arc<metrics::WorkerMetrics>) {
     Python::attach(|py| {
         let mut t_wait = time::Instant::now();
@@ -327,7 +327,7 @@ fn blocking_worker_with_metrics(queue: channel::Receiver<BlockingTask>, metrics:
     });
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 fn blocking_worker_with_metrics(queue: channel::Receiver<BlockingTask>, metrics: Arc<metrics::WorkerMetrics>) {
     Python::attach(|py| {
         while let Ok(task) = py.detach(|| {
@@ -350,7 +350,7 @@ fn blocking_worker_with_metrics(queue: channel::Receiver<BlockingTask>, metrics:
     });
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 fn blocking_worker_idle_with_metrics(
     queue: channel::Receiver<BlockingTask>,
     idle: Arc<atomic::AtomicUsize>,
@@ -383,7 +383,7 @@ fn blocking_worker_idle_with_metrics(
     });
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 fn blocking_worker_idle_with_metrics(
     queue: channel::Receiver<BlockingTask>,
     idle: Arc<atomic::AtomicUsize>,
@@ -412,7 +412,7 @@ fn blocking_worker_idle_with_metrics(
     });
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 fn blocking_worker_timeout_with_metrics(
     queue: channel::Receiver<BlockingTask>,
     timeout: time::Duration,
@@ -446,7 +446,7 @@ fn blocking_worker_timeout_with_metrics(
     });
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 fn blocking_worker_timeout_with_metrics(
     queue: channel::Receiver<BlockingTask>,
     timeout: time::Duration,

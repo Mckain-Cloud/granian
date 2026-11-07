@@ -1,21 +1,21 @@
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[cfg(unix)]
 use std::os::fd::{FromRawFd, OwnedFd, RawFd};
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[cfg(windows)]
 use std::os::windows::io::{FromRawHandle, OwnedHandle};
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use anyhow::Result;
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use interprocess::unnamed_pipe;
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use serde::{Deserialize, Serialize};
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use std::{io::Cursor, sync::Arc};
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
     sync::Mutex,
@@ -23,7 +23,7 @@ use tokio::{
 
 use pyo3::prelude::*;
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[pyclass(frozen, module = "granian._granian")]
 pub(crate) struct IPCReceiverHandle {
     pub id: usize,
@@ -33,7 +33,7 @@ pub(crate) struct IPCReceiverHandle {
     pub fd: std::sync::Mutex<Option<OwnedHandle>>,
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 impl IPCReceiverHandle {
     fn to_receiver(&self) -> Arc<Mutex<unnamed_pipe::tokio::Recver>> {
         let fd = self.fd.lock().unwrap().take().unwrap();
@@ -42,7 +42,7 @@ impl IPCReceiverHandle {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[pymethods]
 impl IPCReceiverHandle {
     #[cfg(unix)]
@@ -123,7 +123,7 @@ impl IPCReceiverHandle {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[pyclass(frozen, module = "granian._granian")]
 pub(crate) struct IPCSenderHandle {
     #[cfg(unix)]
@@ -132,7 +132,7 @@ pub(crate) struct IPCSenderHandle {
     pub fd: std::sync::Mutex<Option<OwnedHandle>>,
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 impl IPCSenderHandle {
     pub(crate) fn to_sender(&self) -> Arc<Mutex<unnamed_pipe::tokio::Sender>> {
         let fd = self.fd.lock().unwrap().take().unwrap();
@@ -141,7 +141,7 @@ impl IPCSenderHandle {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[cfg(unix)]
 #[pymethods]
 impl IPCSenderHandle {
@@ -154,7 +154,7 @@ impl IPCSenderHandle {
     }
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[cfg(windows)]
 #[pymethods]
 impl IPCSenderHandle {
@@ -167,22 +167,22 @@ impl IPCSenderHandle {
     }
 }
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 #[pyclass(frozen, module = "granian._granian")]
 pub(crate) struct IPCReceiverHandle {}
 
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 #[pyclass(frozen, module = "granian._granian")]
 pub(crate) struct IPCSenderHandle {}
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) enum Message {
     // NOTE: potentially use IPC for more purposes
     Metrics(crate::metrics::MetricsData),
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 fn pack_msg(msg: Message) -> Cursor<Bytes> {
     let mut buf = Vec::<u8>::new();
     ciborium::into_writer(&msg, &mut buf).unwrap();
@@ -192,7 +192,7 @@ fn pack_msg(msg: Message) -> Cursor<Bytes> {
     Cursor::new(rv.freeze())
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 pub(crate) async fn write_msg<R: AsyncWrite + Unpin>(msg: Message, r: &mut R) -> Result<()> {
     let mut bytes = pack_msg(msg);
     r.write_all_buf(&mut bytes).await?;
@@ -200,7 +200,7 @@ pub(crate) async fn write_msg<R: AsyncWrite + Unpin>(msg: Message, r: &mut R) ->
     Ok(())
 }
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 pub(crate) async fn read_msg<R: AsyncRead + Unpin>(r: &mut R) -> Result<Message> {
     let mut bytes = [0u8; 4];
     r.read_exact(&mut bytes).await?;

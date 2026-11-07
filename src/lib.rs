@@ -29,9 +29,9 @@ mod workers;
 mod ws;
 mod wsgi;
 
-#[cfg(not(Py_GIL_DISABLED))]
+#[cfg(not(granian_mt_workers))]
 const BUILD_GIL: bool = true;
-#[cfg(Py_GIL_DISABLED)]
+#[cfg(granian_mt_workers)]
 const BUILD_GIL: bool = false;
 
 pub fn get_granian_version() -> &'static str {

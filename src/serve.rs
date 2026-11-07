@@ -54,7 +54,7 @@ macro_rules! serve_fn {
             let mc_notify = Arc::new(tokio::sync::Notify::new());
 
             if let Some(metrics_interval) = cfg.metrics.0 {
-                #[cfg(not(Py_GIL_DISABLED))]
+                #[cfg(not(granian_mt_workers))]
                 crate::metrics::spawn_ipc_collector(
                     rth.clone(),
                     srx.clone(),
@@ -63,7 +63,7 @@ macro_rules! serve_fn {
                     metrics_interval,
                     cfg.ipc.as_ref().unwrap().clone_ref(py),
                 );
-                #[cfg(Py_GIL_DISABLED)]
+                #[cfg(granian_mt_workers)]
                 crate::metrics::spawn_local_collector(
                     rth.clone(),
                     srx.clone(),
@@ -162,9 +162,9 @@ macro_rules! serve_fn {
 
             let metrics_thread = if let Some(metrics_interval) = cfg.metrics.0 {
                 let metrics = metrics.1.clone().unwrap();
-                #[cfg(not(Py_GIL_DISABLED))]
+                #[cfg(not(granian_mt_workers))]
                 let ipc = cfg.ipc.as_ref().map(|v| v.clone_ref(py));
-                #[cfg(Py_GIL_DISABLED)]
+                #[cfg(granian_mt_workers)]
                 let aggr = cfg.metrics.1.as_ref().map(|v| v.clone_ref(py));
                 let srx = srx.clone();
                 let py_loop = py_loop.clone();
@@ -173,7 +173,7 @@ macro_rules! serve_fn {
                     let rt = crate::runtime::init_runtime_st(1, 0, 0, py_loop, None);
                     let local = tokio::task::LocalSet::new();
 
-                    #[cfg(not(Py_GIL_DISABLED))]
+                    #[cfg(not(granian_mt_workers))]
                     crate::metrics::spawn_ipc_collector(
                         rt.handler(),
                         srx,
@@ -182,7 +182,7 @@ macro_rules! serve_fn {
                         metrics_interval,
                         ipc.unwrap(),
                     );
-                    #[cfg(Py_GIL_DISABLED)]
+                    #[cfg(granian_mt_workers)]
                     crate::metrics::spawn_local_collector(
                         rt.handler(),
                         srx,
